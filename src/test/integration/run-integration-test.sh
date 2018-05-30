@@ -51,6 +51,8 @@ cd ${ROOT_DIR}/pravega
 # wait for Pravega to start
 wait_for_service http://localhost:9091/v1/scopes
 
+ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
+
 # Compile and run sample Flink application
 cd ${ROOT_DIR}
 git clone https://github.com//pravega/pravega-samples
