@@ -42,6 +42,7 @@ jobs:
     - stage: build
       script:
       - ./gradlew clean assemble
+      - ./gradlew install
       - ./src/test/integration/run-integration-test.sh
     
 #    - stage: snapshot
