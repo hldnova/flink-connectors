@@ -45,7 +45,8 @@ wait_for_service http://localhost:8081
 # For the time being, use the Pravega submodule in Flink connector.
 # Eventually use a stable Pravega build that is compatible with Flink connector
 cd ${ROOT_DIR}/pravega
-./gradlew startstandalone 2>&1 | tee /tmp/pravega.log &
+#./gradlew startstandalone 2>&1 | tee /tmp/pravega.log &
+./gradlew startstandalone > /dev/null 2>&1 &
 
 # wait for Pravega to start
 wait_for_service http://localhost:9091/v1/scopes
