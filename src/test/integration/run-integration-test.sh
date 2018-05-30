@@ -36,6 +36,9 @@ FLINK_DIR=flink-${FLINK_VERSION}
 FLINK_BINARY=flink-${FLINK_VERSION}-bin-hadoop28-scala_${SCALA_VERSION}.tgz
 wget --no-check-certificate https://archive.apache.org/dist/flink/flink-1.4.2/${FLINK_BINARY}
 tar zxvf $FLINK_BINARY
+
+# Increase job slots
+sed -i '/taskmanager.numberOfTaskSlots/c\taskmanager.numberOfTaskSlots: 5' ./${FLINK_DIR}/conf/flink-conf.yaml
 ./${FLINK_DIR}/bin/start-cluster.sh 
 
 # wait for Flink cluster to start
