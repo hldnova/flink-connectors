@@ -51,13 +51,13 @@ cd ${ROOT_DIR}/pravega
 # wait for Pravega to start
 wait_for_service http://localhost:9091/v1/scopes
 
-cd ${ROOT_DIR}
-ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
+#cd ${ROOT_DIR}
+#ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
 # Rename connector artifact to 0.3.0-SNAPSHOT
-commit_id=$(git log --format="%h" -n 1)
-commit_count=$(git rev-list --count HEAD)
-artifact_path=0.3.0-${commit_count}.${commit_id}-SNAPSHOT
-mv $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/${artifact_path} $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/0.3.0-SNAPSHOT
+#commit_id=$(git log --format="%h" -n 1)
+#commit_count=$(git rev-list --count HEAD)
+#artifact_path=0.3.0-${commit_count}.${commit_id}-SNAPSHOT
+#mv $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/${artifact_path} $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/0.3.0-SNAPSHOT
 ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
 
 # Compile and run sample Flink application
