@@ -40,7 +40,10 @@ stages:
 jobs:
   include:
     - stage: build
-      script: ./gradlew clean assemble
+      script:
+      - ./gradlew clean assemble
+      - ./src/test/integration/run-integration-test.sh
+    
 #    - stage: snapshot
 #      script: ./gradlew publishToRepo -PpublishUrl=jcenterSnapshot -PpublishUsername=$BINTRAY_USER -PpublishPassword=$BINTRAY_KEY
 
