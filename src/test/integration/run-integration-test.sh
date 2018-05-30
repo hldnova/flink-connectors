@@ -53,7 +53,6 @@ wait_for_service http://localhost:9091/v1/scopes
 
 cd ${ROOT_DIR}
 ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
-rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
 # Rename connector artifact to 0.3.0-SNAPSHOT
 commit_id=$(git log --format="%h" -n 1)
 commit_count=$(git rev-list --count HEAD)
@@ -67,5 +66,6 @@ git clone https://github.com//pravega/pravega-samples
 cd ${ROOT_DIR}/pravega-samples
 git checkout develop
 ./gradlew :flink-examples:installDist
+ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
 
 ${ROOT_DIR}/${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controler tcp://localhost:9090 --scope myscope --stream mystream --exactlyonce true
