@@ -10,7 +10,7 @@
 #
  
 # Download and install flink
-set -veu
+set -veux
 FLINK_VERSION=${FLINK_VERSION:-1.4.2}
 PRAVEGA_VERSION_PREFIX=${PRAVEGA_VERSION_PREFIX:-0.3.0}
 FLINK_PORTAL_PORT=${FLINK_PORTAL_PORT:-8081}
@@ -33,14 +33,13 @@ cleanup() {
     rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/*
 
     # clean up flink logs
-    ls -l $FLINK_DIR/logs/*
-    rm -f $FLINK_DIR/logs/*
+    ls -l $FLINK_DIR/log/*
+    rm -f $FLINK_DIR/log/*
 }
 
 wait_for_service() {
     url=$1
     count=0
-    set -x
     until [ "$(curl -s -o /dev/null -w ''%{http_code}'' $url)" = "$HTTP_OK" ]; do
         if [ $count -ge ${WAIT_RETRIES} ]; then
             exit 1;
@@ -48,7 +47,6 @@ wait_for_service() {
         count=$(($count+1))
         sleep ${WAIT_SLEEP}
     done
-    set +x
 }
 
 # Download flink
@@ -97,8 +95,6 @@ ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOn
 # wait for 5 second to for job to register
 sleep 5
 
-set -x
-
 ${FLINK_DIR}/bin/flink list
 job_id=`${FLINK_DIR}/bin/flink list | grep ExactlyOnceChecker | awk '{print $4}'`
 count=0
@@ -110,6 +106,5 @@ until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*.out; do
     fi
     count=$(($count+1))
     sleep ${WAIT_SLEEP}
-fonm
+done
 ${FLINK_DIR}/bin/flink stop $job_id
-
