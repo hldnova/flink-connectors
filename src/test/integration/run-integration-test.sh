@@ -49,8 +49,8 @@ wait_for_service() {
     done
 }
 
-# clean up, esp the flink log directory that hosts job execution results
-cleanup
+# clean up flink log directory that hosts job execution results
+rm -f $FLINK_DIR/log/*
 
 # Download flink
 cd $HOME/flink
