@@ -74,7 +74,7 @@ git checkout develop
 sed -i '/connectorVersion/c\connectorVersion='${version}'' gradle.properties
 ./gradlew :flink-examples:installDist
 
-rm -f ${FLINK_DIR}/log/* 
+#rm -f ${FLINK_DIR}/log/* 
 
 # start ExactlyOnceWriter
 ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream --exactlyonce true
