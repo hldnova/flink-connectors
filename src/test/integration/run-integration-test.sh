@@ -74,7 +74,7 @@ ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOn
 # start ExactlyOnceChecker
 ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream &
 
-job_id=$(/usr/share/flink/bin/flink list  | grep ExactlyOnce | awk '{print $4}')
+job_id=$((${FLINK_DIR}/bin/flink list)  | grep ExactlyOnce | awk '{print $4}')
 count=0
 set -x
 until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*taskmanager*.out; do
