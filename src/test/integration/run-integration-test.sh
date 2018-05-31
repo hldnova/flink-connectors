@@ -66,18 +66,19 @@ cd ${ROOT_DIR}/pravega-samples
 git checkout develop
 ./gradlew :flink-examples:installDist
 
+rm -f ${FLINK_DIR}/log/* 
+
 # start ExactlyOnceWriter
 ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream --exactlyonce true
 
 # start ExactlyOnceChecker
 ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream &
 
-
 job_id=$(/usr/share/flink/bin/flink list  | grep ExactlyOnce | awk '{print $4}')
 count=0
 set -x
-until grep -q "EXACTLY_ONCEE" ${FLINK_DIR}/log/*taskmanager*.out; do
-    if [ $count -ge ${WAIT_RETRIES} ]; then
+until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*taskmanager*.out; do
+    if [ $count -ge 24 ]; then
         ${FLINK_DIR}/bin/flink cancel $job_id
         exit 1
     fi
