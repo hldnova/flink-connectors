@@ -12,12 +12,14 @@
 # Download and install flink
 set -veu
 ROOT_DIR=$PWD
-FLINK_VERSION=1.4.2
-SCALA_VERSION=2.11
-
-RETRIES=48
-SLEEP=5
+FLINK_VERSION=${FLINK_VERSION:-1.4.2}
+FLINK_PORT_PORT=${FLINK_PORTAL_PORT:-8081}
+PRAVEGA_REST_PORT=${PRAVEGA_REST_PORT:-9091}
+SCALA_VERSION=${SCALA_VERSION:-2.11}
+WAIT_RETRIES=${WAIT_RETRIES:-48}
+WAIT_SLEEP=${WAIT_SLEEP:-5}
 HTTP_OK=200
+
 wait_for_service() {
     url=$1
     count=0
@@ -34,7 +36,7 @@ wait_for_service() {
 
 FLINK_DIR=flink-${FLINK_VERSION}
 FLINK_BINARY=flink-${FLINK_VERSION}-bin-hadoop28-scala_${SCALA_VERSION}.tgz
-wget --no-check-certificate https://archive.apache.org/dist/flink/flink-1.4.2/${FLINK_BINARY}
+wget --no-check-certificate https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}/${FLINK_BINARY}
 tar zxvf $FLINK_BINARY
 
 # Increase job slots
@@ -42,7 +44,7 @@ sed -i '/taskmanager.numberOfTaskSlots/c\taskmanager.numberOfTaskSlots: 5' ./${F
 ./${FLINK_DIR}/bin/start-cluster.sh 
 
 # wait for Flink cluster to start
-wait_for_service http://localhost:8081
+wait_for_service http://localhost:${FLINK_PORTAL_PORT}
 
 # Download and install Pravega
 # For the time being, use the Pravega submodule in Flink connector.
@@ -52,17 +54,7 @@ cd ${ROOT_DIR}/pravega
 ./gradlew startstandalone > /dev/null 2>&1 &
 
 # wait for Pravega to start
-wait_for_service http://localhost:9091/v1/scopes
-
-#cd ${ROOT_DIR}
-#ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
-# Rename connector artifact to 0.3.0-SNAPSHOT
-#commit_id=$(git log --format="%h" -n 1)
-#commit_count=$(git rev-list --count HEAD)
-#artifact_path=0.3.0-${commit_count}.${commit_id}-SNAPSHOT
-#mv $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/${artifact_path} $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/0.3.0-SNAPSHOT
-ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
-rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
+wait_for_service http://localhost:${PRAVEGA_REST_PORT}/v1/scopes
 
 # Compile and run sample Flink application
 cd ${ROOT_DIR}
@@ -70,6 +62,9 @@ git clone https://github.com//pravega/pravega-samples
 cd ${ROOT_DIR}/pravega-samples
 git checkout develop
 ./gradlew :flink-examples:installDist
-ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11
 
+# start ExactlyOnceWriter
 ${ROOT_DIR}/${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controler tcp://localhost:9090 --scope myscope --stream mystream --exactlyonce true
+
+# start ExactlyOnceChecker
+${ROOT_DIR}/${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controler tcp://localhost:9090 --scope myscope --stream mystream 
