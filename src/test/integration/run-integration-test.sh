@@ -60,6 +60,7 @@ cd ${ROOT_DIR}/pravega
 # wait for Pravega to start
 wait_for_service http://localhost:${PRAVEGA_REST_PORT}/v1/scopes
 
+cd ${ROOT_DIR}
 # flink connector artifact version
 commit_id=$(git log --format="%h" -n 1)
 count=$(git rev-list --count HEAD)
