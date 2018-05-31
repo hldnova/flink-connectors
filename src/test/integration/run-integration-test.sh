@@ -98,7 +98,9 @@ ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOn
 sleep 5
 
 set -x
-job_id=`${FLINK_DIR}/bin/flink list) | grep ExactlyOnceChecker | awk '{print $4}'`
+
+${FLINK_DIR}/bin/flink list
+job_id=`${FLINK_DIR}/bin/flink list | grep ExactlyOnceChecker | awk '{print $4}'`
 count=0
 ls -l ${FLINK_DIR}/log
 until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*.out; do
