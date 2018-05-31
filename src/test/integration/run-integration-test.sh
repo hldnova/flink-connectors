@@ -86,7 +86,7 @@ job_id=$((${FLINK_DIR}/bin/flink list)  | grep ExactlyOnce | awk '{print $4}')
 count=0
 ls -l ${FLINK_DIR}/log
 set -x
-until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*.out; do
+until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*; do
     if [ $count -ge 24 ]; then
         ${FLINK_DIR}/bin/flink cancel $job_id
         exit 1
