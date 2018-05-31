@@ -13,7 +13,7 @@
 set -veu
 ROOT_DIR=$PWD
 FLINK_VERSION=${FLINK_VERSION:-1.4.2}
-FLINK_PORT_PORT=${FLINK_PORTAL_PORT:-8081}
+FLINK_PORTAL_PORT=${FLINK_PORTAL_PORT:-8081}
 PRAVEGA_REST_PORT=${PRAVEGA_REST_PORT:-9091}
 SCALA_VERSION=${SCALA_VERSION:-2.11}
 WAIT_RETRIES=${WAIT_RETRIES:-48}
@@ -25,11 +25,11 @@ wait_for_service() {
     count=0
     set -x
     until [ "$(curl -s -o /dev/null -w ''%{http_code}'' $url)" = "$HTTP_OK" ]; do
-        if [ $count -ge $RETRIES ]; then
+        if [ $count -ge ${WAIT_RETRIES} ]; then
             exit 1;
         fi
         count=$(($count+1))
-        sleep $SLEEP
+        sleep ${WAIT_SLEEP}
     done
     set +x
 }
