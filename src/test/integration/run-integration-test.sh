@@ -12,6 +12,7 @@
 # Download and install flink
 set -veu
 FLINK_VERSION=${FLINK_VERSION:-1.4.2}
+PRAVEGA_VERSION_PREFIX=${PRAVEGA_VERSION_PREFIX:-0.3.0}
 FLINK_PORTAL_PORT=${FLINK_PORTAL_PORT:-8081}
 PRAVEGA_REST_PORT=${PRAVEGA_REST_PORT:-9091}
 PRAVEGA_CONTROLLER_PORT=${PRAVEGA_CONTROLLER_PORT:-9090}
@@ -59,11 +60,17 @@ cd ${ROOT_DIR}/pravega
 # wait for Pravega to start
 wait_for_service http://localhost:${PRAVEGA_REST_PORT}/v1/scopes
 
+# flink connector artifact version
+commit_id=$(git log --format="%h" -n 1)
+count=$(git rev-list --count HEAD)
+version=${PRAVEGA_VERSION_PREFIX}-${count}.${commit_id}-SNAPSHOT
+
 # Compile and run sample Flink application
 cd ${ROOT_DIR}
 git clone https://github.com//pravega/pravega-samples
 cd ${ROOT_DIR}/pravega-samples
 git checkout develop
+sed -i '/connectorVersion/c\connectorVersion='${version}'' gradle.properties
 ./gradlew :flink-examples:installDist
 
 rm -f ${FLINK_DIR}/log/* 
@@ -76,8 +83,9 @@ ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOn
 
 job_id=$((${FLINK_DIR}/bin/flink list)  | grep ExactlyOnce | awk '{print $4}')
 count=0
+ls -l ${FLINK_DIR}/log
 set -x
-until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*taskmanager*.out; do
+until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*.out; do
     if [ $count -ge 24 ]; then
         ${FLINK_DIR}/bin/flink cancel $job_id
         exit 1
