@@ -29,11 +29,11 @@ trap cleanup EXIT
 trap "exit 1" SIGTERM SIGHUP SIGINT SIGQUIT
 cleanup() {
     # clean up flink connector artifacts as $HOME/.m2 may be cacached.
-    ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/
+    #ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/
     rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/*
 
     # clean up flink logs
-    ls -l $FLINK_DIR/log/*
+    #ls -l $FLINK_DIR/log/*
     rm -f $FLINK_DIR/log/*
 }
 
@@ -48,6 +48,9 @@ wait_for_service() {
         sleep ${WAIT_SLEEP}
     done
 }
+
+# clean up, esp the flink log directory that hosts job execution results
+cleanup
 
 # Download flink
 cd $HOME/flink
@@ -87,7 +90,7 @@ sed -i '/connectorVersion/c\connectorVersion='${version}'' gradle.properties
 ./gradlew :flink-examples:installDist
 
 # start ExactlyOnceWriter
-${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream --exactlyonce true
+${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream --exactlyonce false
 
 # start ExactlyOnceChecker
 ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream &
