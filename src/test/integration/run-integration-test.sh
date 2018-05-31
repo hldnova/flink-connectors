@@ -56,6 +56,7 @@ rm -f $FLINK_DIR/log/*
 cd $HOME/flink
 wget --no-check-certificate https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}/${FLINK_BINARY}
 tar zxvf $FLINK_BINARY
+rm -f ${FLINK_BINARY}
 
 # Increase job slots, then start flink cluster
 sed -i '/taskmanager.numberOfTaskSlots/c\taskmanager.numberOfTaskSlots: 5' ${FLINK_DIR}/conf/flink-conf.yaml
@@ -90,13 +91,13 @@ sed -i '/connectorVersion/c\connectorVersion='${version}'' gradle.properties
 ./gradlew :flink-examples:installDist
 
 # start ExactlyOnceWriter
-${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream --exactlyonce false
+${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceWriter flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream --exactlyonce true
 
 # start ExactlyOnceChecker
-${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream &
+${FLINK_DIR}/bin/flink run -d -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream 
 
 # wait for 5 second to for job to register
-sleep 5
+sleep 2
 
 ${FLINK_DIR}/bin/flink list
 job_id=`${FLINK_DIR}/bin/flink list | grep ExactlyOnceChecker | awk '{print $4}'`
@@ -110,4 +111,6 @@ until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*.out; do
     count=$(($count+1))
     sleep ${WAIT_SLEEP}
 done
+
+# successful. stop the checker job.
 ${FLINK_DIR}/bin/flink stop $job_id
