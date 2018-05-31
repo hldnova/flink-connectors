@@ -56,7 +56,7 @@ rm -f $FLINK_DIR/log/*
 cd $HOME/flink
 wget --no-check-certificate https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}/${FLINK_BINARY}
 tar zxvf $FLINK_BINARY
-rm -f ${FLINK_BINARY}
+rm -f ${FLINK_BINARY}*
 
 # Increase job slots, then start flink cluster
 sed -i '/taskmanager.numberOfTaskSlots/c\taskmanager.numberOfTaskSlots: 5' ${FLINK_DIR}/conf/flink-conf.yaml
