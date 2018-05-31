@@ -22,9 +22,20 @@ WAIT_SLEEP=${WAIT_SLEEP:-5}
 HTTP_OK=200
 
 WORK_DIR=$PWD
+FLINK_DIR=$HOME/flink/flink-${FLINK_VERSION}
+FLINK_BINARY=flink-${FLINK_VERSION}-bin-hadoop28-scala_${SCALA_VERSION}.tgz
 
 trap cleanup EXIT
 trap "exit 1" SIGTERM SIGHUP SIGINT SIGQUIT
+cleanup() {
+    # clean up flink connector artifacts as $HOME/.m2 may be cacached.
+    ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/
+    rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/*
+
+    # clean up flink logs
+    ls -l $FLINK_DIR/logs/*
+    rm -f $FLINK_DIR/logs/*
+}
 
 wait_for_service() {
     url=$1
@@ -42,8 +53,6 @@ wait_for_service() {
 
 # Download flink
 cd $HOME/flink
-FLINK_DIR=$HOME/flink/flink-${FLINK_VERSION}
-FLINK_BINARY=flink-${FLINK_VERSION}-bin-hadoop28-scala_${SCALA_VERSION}.tgz
 wget --no-check-certificate https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}/${FLINK_BINARY}
 tar zxvf $FLINK_BINARY
 
@@ -70,8 +79,6 @@ commit_id=$(git log --format="%h" -n 1)
 count=$(git rev-list --count HEAD)
 version=${PRAVEGA_VERSION_PREFIX}-${count}.${commit_id}-SNAPSHOT
 
-ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/
-ls -l $FLINK_DIR/logs/*
 
 # Compile and run sample Flink application
 cd ${WORK_DIR}
@@ -104,10 +111,3 @@ until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*.out; do
 fonm
 ${FLINK_DIR}/bin/flink stop $job_id
 
-cleanup() {
-    # clean up flink connector artifacts as $HOME/.m2 may be cacached.
-    rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/*
-
-    # clean up flink logs
-    rm -f $FLINK_DIR/logs/*
-}
