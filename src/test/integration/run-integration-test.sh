@@ -82,10 +82,10 @@ ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOn
 # start ExactlyOnceChecker
 ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream &
 
+set -x
 job_id=$((${FLINK_DIR}/bin/flink list)  | grep ExactlyOnce | awk '{print $4}')
 count=0
 ls -l ${FLINK_DIR}/log
-set -x
 until grep -q "EXACTLY_ONCE" ${FLINK_DIR}/log/*; do
     if [ $count -ge 24 ]; then
         ${FLINK_DIR}/bin/flink cancel $job_id
