@@ -31,6 +31,7 @@ cache:
   - .gradle
   - $HOME/.gradle
   - $HOME/.m2
+  - $HOME/flink
 
 stages:
   - name: build
