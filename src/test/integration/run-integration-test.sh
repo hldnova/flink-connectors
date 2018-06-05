@@ -11,6 +11,9 @@
  
 # Download and install flink
 set -veux
+
+env
+
 FLINK_VERSION=${FLINK_VERSION:-1.4.2}
 PRAVEGA_VERSION_PREFIX=${PRAVEGA_VERSION_PREFIX:-0.3.0}
 FLINK_PORTAL_PORT=${FLINK_PORTAL_PORT:-8081}
@@ -22,15 +25,16 @@ WAIT_SLEEP=${WAIT_SLEEP:-5}
 HTTP_OK=200
 
 WORK_DIR=$PWD
-FLINK_DIR=$HOME/flink/flink-${FLINK_VERSION}
+FLINK_DIR=$HOME/flink-${FLINK_VERSION}
 FLINK_BINARY=flink-${FLINK_VERSION}-bin-hadoop28-scala_${SCALA_VERSION}.tgz
 
 trap cleanup EXIT
 trap "exit 1" SIGTERM SIGHUP SIGINT SIGQUIT
 cleanup() {
-    # clean up flink connector artifacts as $HOME/.m2 may be cacached.
+    # clean up flink connector artifacts as $HOME/.m2 may be cached.
     #ls -l $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/
-    rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/*
+    #rm -rf $HOME/.m2/repository/io/pravega/pravega-connectors-flink_2.11/*
+    rm -rf $HOME/.m2/repository/io/pravega/*
 
     # clean up flink logs
     #ls -l $FLINK_DIR/log/*
@@ -53,7 +57,7 @@ wait_for_service() {
 rm -f $FLINK_DIR/log/*
 
 # Download flink
-cd $HOME/flink
+cd $HOME
 wget --no-check-certificate https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}/${FLINK_BINARY}
 tar zxvf $FLINK_BINARY
 rm -f ${FLINK_BINARY}*
@@ -68,9 +72,21 @@ wait_for_service http://localhost:${FLINK_PORTAL_PORT}
 # Download and install Pravega
 # For the time being, use the Pravega submodule in Flink connector.
 # Eventually use a stable Pravega build that is compatible with Flink connector
-cd ${WORK_DIR}/pravega
-#./gradlew startstandalone 2>&1 | tee /tmp/pravega.log &
-./gradlew startstandalone > /dev/null 2>&1 &
+cd ${WORK_DIR}
+PRAVEGA_JFROG=https://oss.jfrog.org/artifactory/jfrog-dependencies/io/pravega
+PRAVEGA_PACKAGE=pravega-standalone-0.3.0-1870.f56b52d-20180604.195330-9.tgz
+PRAVEGA_VERSION=${PRAVEGA_PACKAGE:19:18}  # 0.3.0-1870.f56b52d
+PRAVEGA_BUILD=${PRAVEGA_PACKAGE:38:17}    # 20180604.195330-9
+PRAVEGA_PREFIX=pravega-standalone
+PRAVEGA_PATH=${PRAVEGA_VERSION}-SNAPSHOT  # 0.3.0-1870.f56b52d-SNAPSHOT
+
+rm -rf ${WORK_DIR}/${PRAVEGA_PREFIX}-${PRAVEGA_PATH}
+wget --no-check-certificate ${PRAVEGA_JFROG}/${PRAVEGA_PREFIX}/${PRAVEGA_PATH}/${PRAVEGA_PACKAGE} && \
+tar zxvf ${PRAVEGA_PACKAGE} && \
+rm -f ${PRAVEGA_PACKAGE}
+
+cd ${WORK_DIR}/${PRAVEGA_PREFIX}-${PRAVEGA_PATH}
+bin/pravega-standalone /dev/null 2>&1 &
 
 # wait for Pravega to start
 wait_for_service http://localhost:${PRAVEGA_REST_PORT}/v1/scopes
@@ -95,9 +111,6 @@ ${FLINK_DIR}/bin/flink run -c io.pravega.examples.flink.primer.process.ExactlyOn
 
 # start ExactlyOnceChecker
 ${FLINK_DIR}/bin/flink run -d -c io.pravega.examples.flink.primer.process.ExactlyOnceChecker flink-examples/build/install/pravega-flink-examples/lib/pravega-flink-examples-0.3.0-SNAPSHOT-all.jar --controller tcp://localhost:${PRAVEGA_CONTROLLER_PORT} --scope myscope --stream mystream 
-
-# wait for 5 second to for job to register
-sleep 2
 
 ${FLINK_DIR}/bin/flink list
 job_id=`${FLINK_DIR}/bin/flink list | grep ExactlyOnceChecker | awk '{print $4}'`
